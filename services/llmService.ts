@@ -1,5 +1,5 @@
 import { GoogleGenAI, Type } from "@google/genai";
-import { UserInput, GenerationResponse, AnalysisResponse, LLMConfig, LLMProvider } from "../types";
+import { UserInput, GenerationResponse, AnalysisResponse, LLMConfig, LLMProvider, NameLength } from "../types";
 import { calculateBaZi } from "./baziCalculator";
 
 /**
@@ -21,7 +21,17 @@ const getApiKey = (config: LLMConfig): string => {
  */
 const getSystemPrompt = () => "你是一位精通中国传统文化、周易八字、五行生克和古典文学的起名大师。你的名字风格高雅、意境优美。请严格按照JSON格式输出。";
 
-const getGenerationPrompt = (input: UserInput, bazi: string[], excludeNames: string[] = []) => `
+const getGenerationPrompt = (input: UserInput, bazi: string[], excludeNames: string[] = []) => {
+  let lengthInstruction = "";
+  if (input.nameLength === NameLength.SINGLE) {
+    lengthInstruction = "6. 请严格只生成单字名（名字只有1个字）。";
+  } else if (input.nameLength === NameLength.DOUBLE) {
+    lengthInstruction = "6. 请严格只生成双字名（名字有2个字）。";
+  } else {
+    lengthInstruction = "6. 名字可以是单字或双字，请根据音律和字义自由搭配。";
+  }
+
+  return `
     请为这位${input.gender}孩起名。
     姓氏：${input.surname}
     出生日期：${input.birthDate}
@@ -34,13 +44,15 @@ const getGenerationPrompt = (input: UserInput, bazi: string[], excludeNames: str
     2. 生成 5 个好听、有文化内涵、且能平衡五行的名字。
     3. 名字要出自经典诗词或典故。
     ${excludeNames.length > 0 ? `4. 请完全避开以下名字，生成全新的：${excludeNames.join('、')}。` : ''}
-    5. 返回严格的 JSON 格式，结构如下：
+    5. 返回的 suggestions 中的 characters 字段 **绝对不要包含姓氏**，只返回名字本身（例如姓李，起名李明，characters 字段只能是 "明"）。
+    ${lengthInstruction}
+    7. 返回严格的 JSON 格式，结构如下：
     {
       "bazi": ["String"],
       "missingElements": ["String"],
       "elementDistribution": [{"element": "String", "score": Number}],
       "suggestions": [{
-        "characters": "String",
+        "characters": "String", // 仅名字，不含姓氏
         "pinyin": "String",
         "wuxing": "String",
         "score": Number,
@@ -50,6 +62,7 @@ const getGenerationPrompt = (input: UserInput, bazi: string[], excludeNames: str
       }]
     }
 `;
+};
 
 const getAnalysisPrompt = (input: UserInput, bazi: string[]) => `
     请分析以下名字的吉凶。

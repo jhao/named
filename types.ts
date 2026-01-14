@@ -3,6 +3,12 @@ export enum Gender {
   FEMALE = '女'
 }
 
+export enum NameLength {
+  RANDOM = 0, // Random length
+  SINGLE = 1, // Single character name
+  DOUBLE = 2  // Two character name
+}
+
 export enum AppMode {
   GENERATE = 'GENERATE',
   ANALYZE = 'ANALYZE',
@@ -38,6 +44,7 @@ export interface UserInput {
   gender: Gender;
   birthDate: string; // YYYY-MM-DD
   birthTime: string; // HH:mm
+  nameLength?: NameLength; // Preference for name length
 }
 
 export interface ElementScore {

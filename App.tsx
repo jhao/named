@@ -9,7 +9,8 @@ import {
   HistoryItem,
   AppSettings,
   ServiceMode,
-  GeneratedName
+  GeneratedName,
+  NameLength
 } from './types';
 import { generateNamesLLM, analyzeNameLLM } from './services/llmService';
 import { generateNamesLocal, analyzeNameLocal } from './services/localService';
@@ -74,7 +75,8 @@ export default function App() {
     name: '',
     gender: Gender.MALE,
     birthDate: '',
-    birthTime: '12:00'
+    birthTime: '12:00',
+    nameLength: NameLength.DOUBLE
   });
 
   // Result State
@@ -89,6 +91,10 @@ export default function App() {
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
+  };
+  
+  const handleNameLengthChange = (length: NameLength) => {
+    setFormData(prev => ({ ...prev, nameLength: length }));
   };
 
   const handleHistoryRestore = (item: HistoryItem) => {
@@ -313,6 +319,36 @@ export default function App() {
                         placeholder="如：明"
                         className="w-full p-3 border border-stone-300 rounded-lg focus:ring-2 focus:ring-cinnabar focus:border-transparent outline-none bg-white transition-shadow"
                       />
+                    </div>
+                  )}
+
+                  {/* Name Length Selection - Only for Generate Mode */}
+                  {mode === AppMode.GENERATE && (
+                    <div>
+                       <label className="block text-sm font-medium text-stone-600 mb-1">名字字数</label>
+                       <div className="flex gap-3">
+                         <button
+                           type="button"
+                           onClick={() => handleNameLengthChange(NameLength.DOUBLE)}
+                           className={`flex-1 py-3 rounded-lg border text-sm font-bold transition-all ${formData.nameLength === NameLength.DOUBLE ? 'bg-red-50 border-cinnabar text-cinnabar' : 'bg-white border-stone-200 text-stone-500 hover:bg-stone-50'}`}
+                         >
+                           双字 (如: 李明浩)
+                         </button>
+                         <button
+                           type="button"
+                           onClick={() => handleNameLengthChange(NameLength.SINGLE)}
+                           className={`flex-1 py-3 rounded-lg border text-sm font-bold transition-all ${formData.nameLength === NameLength.SINGLE ? 'bg-red-50 border-cinnabar text-cinnabar' : 'bg-white border-stone-200 text-stone-500 hover:bg-stone-50'}`}
+                         >
+                           单字 (如: 李明)
+                         </button>
+                         <button
+                           type="button"
+                           onClick={() => handleNameLengthChange(NameLength.RANDOM)}
+                           className={`w-16 py-3 rounded-lg border text-sm font-bold transition-all ${formData.nameLength === NameLength.RANDOM ? 'bg-red-50 border-cinnabar text-cinnabar' : 'bg-white border-stone-200 text-stone-500 hover:bg-stone-50'}`}
+                         >
+                           随机
+                         </button>
+                       </div>
                     </div>
                   )}
 
